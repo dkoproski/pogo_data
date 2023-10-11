@@ -1,0 +1,52 @@
+---
+title: "Pokemon Go Catch Data"
+author: "Dylan Koproski"
+date: "2023-10-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+library(tidyverse)
+library(p8105.datasets)
+library(leaflet)
+library(ggridges)
+library(ggmap)
+```
+
+```{r}
+df = read.csv("data/testdata.csv") |> 
+  drop_na(hatched)
+
+dfc <- df |> 
+  separate(Lat, into = c("lat", "lng"), sep = ",", convert = TRUE) |> drop_na(lat)
+
+
+aggregated_data <- dfc |> 
+  group_by(lat, lng) |> 
+  summarize(
+    count = n(),
+    location = first(location) 
+  )
+
+
+
+```
+# Quick test on the map to see if geocoding worked properly
+
+```{r}
+leaflet(aggregated_data) |> 
+  addTiles() |> 
+  addCircleMarkers(
+    ~lng, 
+    ~lat, 
+    radius = ~sqrt(count) * 3, 
+    popup = ~paste0("Location: ", location, "<br>Count: ", count),
+    fillOpacity = 0.6, 
+    stroke = FALSE
+  )
+```
+
